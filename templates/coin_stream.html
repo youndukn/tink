@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% for coin in stream %}
+    <article>
+        <h2>
+            <a href="{{ url_for('stream', username=coin.user.username) }}">{{ coin.user.username }}</a>
+        </h2>
+        <i class="clock"></i>
+        <time data-time="{{ coin.timestamp }}" class="distime" datetime="{{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}">{{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</time>
+        <div class="coin">
+            {{ coin.amount }} coin
+        </div>
+    </article>
+{% endfor %}
+{% endblock %}

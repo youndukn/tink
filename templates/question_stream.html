@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% for question in stream %}
+    <article>
+        <i class="clock"></i>
+        <time data-time="{{ question.timestamp }}" class="distime" datetime="{{ question.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}">{{ question.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</time>
+        <div class="question">
+            {{ question.question }}
+        </div>
+        <a href="{{url_for('vote_question', question_id=question.id)}}" class="vote">Vote</a>
+    </article>
+{% endfor %}
+{% endblock %}
