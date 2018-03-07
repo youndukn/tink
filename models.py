@@ -36,25 +36,23 @@ class User(UserMixin, Model):
     def get_coin_stream(self):
         return Coin.select().where(
             (Coin.user == self)
-        )
+        ).order_by(Coin.timestamp.desc())
 
     def get_question(self):
-        return Question.select().where(Question.votes >= 1)
+        return Question.select().where(Question.vote >= 1)
 
     def get_question_stream(self):
-        return Question.select().where(Question.votes >= 1)
+        return Question.select().where(Question.vote >= 1)
 
     def answered(self):
         """The users that we are following"""
         return (
             User.select().join(
-                Relationship, on=Relationship.to_user
+                Voted, on=Voted.to_question
             ).where(
-                Relationship.from_user == self
+                Voted.from_user == self
             )
         )
-
-
 
     def following(self):
         """The users that we are following"""
@@ -109,43 +107,43 @@ class Coin(Model):
         model=User,
         related_name='coins'
     )
-    amount = IntegerField()
+    eth = FloatField()
+    icx = FloatField()
+    tink = FloatField()
 
     class Meta:
         database = DATABASE
-        order_by = ('-timestamp')
-
-
-class Coin(Model):
-    timestamp = DateTimeField(default=datetime.datetime.now)
-    user = ForeignKeyField(
-        model=User,
-        related_name='coins'
-    )
-    amount = IntegerField()
-
-    class Meta:
-        database = DATABASE
-        order_by = ('-timestamp')
+        order_by = ('-timestamp',)
 
 
 class Question(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
     user = ForeignKeyField(
         model=User,
-        related_name='qeustions'
+        related_name='questions'
     )
     question = TextField()
-    vote = BooleanField()
+    vote = IntegerField()
 
     class Meta:
         database = DATABASE
-        order_by = ('-votes')
+        order_by = ('-vote')
+
+
+class Voted(Model):
+    from_user = ForeignKeyField(User, related_name="voted")
+    to_voted = ForeignKeyField(Question, related_name='voted_to')
+
+    class Meta:
+        database = DATABASE
+        indexes = (
+            (('from_user', 'to_voted'), True)
+        )
 
 
 class Answered(Model):
     from_user = ForeignKeyField(User, related_name="answered")
-    to_question = ForeignKeyField(Question, related_name='related_to')
+    to_question = ForeignKeyField(Question, related_name='question_to')
 
     class Meta:
         database = DATABASE
@@ -164,7 +162,8 @@ class Relationship(Model):
             (('from_user', 'to_user'), True)
         )
 
+
 def initialized():
     DATABASE.connect()
-    DATABASE.create_tables([User, Post, Coin, Question], safe=True)
+    DATABASE.create_tables((User, Post, Coin, Question,), safe=True)
     DATABASE.close()

@@ -1,4 +1,4 @@
-from flask import (Flask, g, render_template, flash, redirect, url_for, abort)
+from flask import (Flask, g, render_template, flash, redirect, url_for, abort, request)
 from flask_bcrypt import check_password_hash
 from flask_login import (LoginManager, login_user, logout_user, login_required,
                          current_user)
@@ -16,12 +16,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+
 @login_manager.user_loader
 def load_user(userid):
     try:
         return models.User.get(models.User.id == userid)
     except models.DoesNotExist:
         return None
+
 
 @app.before_request
 def before_request():
@@ -30,10 +32,12 @@ def before_request():
     g.db.connect()
     g.user = current_user
 
+
 @app.after_request
 def after_request(response):
     g.db.close()
     return response
+
 
 @app.route('/register', methods=('GET', 'POST'))
 def register():
@@ -47,6 +51,7 @@ def register():
         )
         return redirect(url_for('index'))
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=('GET', 'POST'))
 def login():
@@ -72,6 +77,7 @@ def logout():
     flash("Logged Out Success", "success")
     return redirect(url_for('index'))
 
+
 @app.route('/new_post', methods = ('GET', 'POST'))
 @login_required
 def post():
@@ -86,63 +92,73 @@ def post():
 
 
 @app.route('/')
+@login_required
 def index():
-    stream = models.Post.select().limit(100)
-    return render_template('stream.html', stream=stream)
+    stream = models.Coin.select().order_by(models.Coin.timestamp.desc()).limit(4)
+    return render_template('coin_stream.html', stream=stream)
 
 
-@app.route('/question', methods = ('GET', 'POST'))
+@app.route('/question', methods=('GET', 'POST'))
 @login_required
 def question():
-    if not current_user.is_admin:
-        flash("Only Admin", "error")
-        return redirect(url_for('index'))
-
     form = forms.QuestionForm()
     if form.validate_on_submit():
         models.Question.create(
             user=g.user._get_current_object(),
             question = form.question.data,
-            vote = form.vote.data)
-        flash("Question posted", "success")
+            vote = 1)
+        flash("Question Submitted", "success")
         return redirect(url_for('index'))
-    return render_template('question.html', form=form)
+    stream = current_user.get_question_stream().limit(100)
+    return render_template('question.html', form=form, stream=stream)
 
-@app.route('/question_stream')
-@app.route('/question_stream/<username>')
-def question_stream(username=None):
-    template = 'question_stream.html'
-    current_user.get_coin_stream().limit(100)
-    if username and username != current_user.username:
-        try:
-            user = models.User.select().where(models.User.username**username).get()
-        except models.DoesNotExist:
-            abort(404)
-        else:
-            stream = user.coins.limit(100)
-    else:
-        stream = current_user.get_coin_stream().limit(100)
-        user = current_user
-    if username:
-        template = 'question_stream.html'
-    return render_template(template, stream=stream, user=user)
+
+@app.route('/question_stream/<int:question_id>')
+def view_question(question_id):
+    question = models.Question.select().where(models.Question.id == question_id)
+    if question.count() == 0:
+        abort(404)
+    return render_template('question_stream.html', stream=question)
 
 
 @app.route('/admin', methods = ('GET', 'POST'))
 @login_required
 def admin():
-    if not current_user.is_admin:
-        flash("Only Admin", "error")
-        return redirect(url_for('index'))
 
+    tinkAmount = 0.0
+    ethereum = 0.0
     form = forms.CoinForm()
-    if form.validate_on_submit():
-        models.Coin.create(
-            user=g.user._get_current_object(),
-            amount = form.amount.data)
-        flash("Coin created", "success")
-        return redirect(url_for('index'))
-    return render_template('admin.html', form=form)
+
+    if request.method == 'POST':
+        if request.form['btn'] == "To":
+            if form.eth.data:
+                ethereum = form.eth.data
+                tinkAmount = form.eth.data * 1230
+
+            if form.icx.data:
+                ethereum = form.icx.data / 22
+                tinkAmount = ethereum * 1230
+
+            return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+        elif request.form['btn'] == "Confirm Rate":
+            if form.validate_on_submit():
+                tinkAmount = form.eth.data * 1230
+                icxAmount = form.eth.data / 10
+                if form.icx.data:
+                    tinkAmount = form.icx.data * 12300
+                    icxAmount = form.icx.data
+
+                models.Coin.create(
+                    user=g.user._get_current_object(),
+                    icx=icxAmount,
+                    eth=form.eth.data,
+                    tink=tinkAmount)
+
+                flash("Coin Submitted", "success")
+                return redirect(url_for('index'))
+
+    return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+
 
 @app.route('/coin_send/<username>')
 def coin_send(username=None):
@@ -153,38 +169,39 @@ def coin_send(username=None):
         except models.DoesNotExist:
             abort(404)
         else:
-            stream = user.coins.limit(100)
+            stream=user.coins.limit(100)
         user = current_user
     if username:
         template = 'coin_stream.html'
     return render_template(template, stream=stream, user=user)
-
 
 
 @app.route('/coin')
 @app.route('/coin/<username>')
 def coin(username=None):
     template = 'coin_stream.html'
-    if username and username != current_user.username:
+    if current_user.is_admin and username != current_user.username:
         try:
             user = models.User.select().where(models.User.username**username).get()
         except models.DoesNotExist:
             abort(404)
         else:
-            stream = user.coins.limit(100)
+            stream=user.coins.limit(4)
     else:
-        stream = current_user.get_coin_stream().limit(100)
+        stream = current_user.get_coin_stream().limit(4)
         user = current_user
     if username:
         template = 'coin_stream.html'
     return render_template(template, stream=stream, user=user)
 
+
 @app.route('/coin/<int:coin_id>')
 def view_coin(coin_id):
-    coins = models.Coin.select().where(models.Coin.id == coin_id)
+    coins = models.Coin.select().order_by(models.Coin.timestamp.desc()).where(models.Coin.id == coin_id)
     if coins.count() == 0:
         abort(404)
     return render_template('coin_stream.html', stream=coins)
+
 
 @app.route('/stream')
 @app.route('/stream/<username>')
@@ -204,12 +221,34 @@ def stream(username=None):
         template = 'user_stream.html'
     return render_template(template, stream=stream, user=user)
 
+
 @app.route('/post/<int:post_id>')
 def view_post(post_id):
     posts = models.Post.select().where(models.Post.id == post_id)
     if posts.count() == 0:
         abort(404)
     return render_template('stream.html', stream=posts)
+
+
+@app.route('/vote/<question_id>')
+@login_required
+def vote(question_id):
+    try:
+        to_question = models.Question.get(models.Question.id**question_id)
+    except models.DoesNotExist:
+        abort(404)
+    else:
+        try:
+            models.Voted.create(
+                from_user = g.user._get_current_object(),
+                to_question=to_question
+            )
+        except models.IntegrityError:
+            pass
+        else:
+            flash("You are now voted {}".format(to_question.question), "success")
+    return redirect(url_for('question', question=to_question.id))
+
 
 
 @app.route('/follow/<username>')
@@ -251,9 +290,11 @@ def unfollow(username):
             flash("You've unfollowed {}".format(to_user.username), "success")
     return redirect(url_for('stream', username=to_user.username))
 
+
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
+
 
 if __name__ == '__main__':
     models.initialized()

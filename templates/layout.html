@@ -41,7 +41,6 @@
                 <a href="{{ url_for('logout') }}" class="icon-power" title="Log out"></a>
                 {% else %}
                 <a href="{{ url_for('login') }}" class="icon-power" title="Log in"></a>
-                <a href="{{ url_for('register') }}" class="icon-profile" title="Register"></a>
                 {% endif %}
 
             </div>
@@ -65,12 +64,9 @@
 
             <nav>
 
-              <a href="{{ url_for('index') }}">All</a>
-
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('stream', username=current_user.username) }}"> Following</a>
-                <a href="{{ url_for('coin', username=current_user.username) }}"> My Coins</a>
-                <a href="{{ url_for('post') }}" class="new">Create New Post</a>
+                <a href="{{ url_for('coin', username=current_user.username) }}"> Confirmed History</a>
+                <a href="{{ url_for('admin') }}" class="new">Coins</a>
                 {% endif %}
 
             </nav>

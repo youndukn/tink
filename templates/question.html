@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "question_stream.html"%}
 
 {% from 'macros.html' import render_field %}
 
@@ -10,4 +10,6 @@
     {% endfor %}
     <button type="submit" id="submit">Create!</button>
 </form>
+{{super()}}
+
 {% endblock %}
