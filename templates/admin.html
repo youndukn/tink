@@ -4,27 +4,25 @@
 
 {% block content %}
 <form method="POST" action="" class="form">
+
     {{ form.hidden_tag() }}
     {% for field in form if field.widget.input_type != 'hidden' %}
         {% if field.errors %}
              <div class="has-error">  {{ field.label }}  {{ field(size=80, class_='form-control') }}</div>
              <span style="color: red;">{% for error in field.errors %}{{ error }}{% if not loop.last %}<br />{% endif %}{% endfor %}</span>
         {% else %}
-            {% if eth > 0.0 %}
-                {% if field.label.text == "ETH" %} {{ form.eth(placeholder='ETH', value=eth) }} {% endif%}
-                {% if field.label.text == "ICX" %} {{ form.icx(placeholder='ICX', value=0.0) }} {% endif%}
-            {% else%}
-                {% if field.label.text == "ETH" %} {{ form.eth(placeholder='ETH') }} {% endif%}
-                {% if field.label.text == "ICX" %} {{ form.icx(placeholder='ICX') }} {% endif%}
-            {% endif %}
+            {% if field.label.text == "My Address" %} {{ render_field(field) }} {% endif%}
+            {% if field.label.text == "Coin" %} {{ form.coin(placeholder='Coin') }} {% endif%}
+            {% if field.label.text == "Type" %} {{ render_field(field) }} {% endif%}
         {% endif %}
+
     {% endfor %}
 
-    {{ form.btn(value="To") }}
+    {{ form.btns(value="To", class="toButton") }}
      <h2>
          <a> {{ tink }} tinks</a>
      </h2>
-    {{ form.btn(value="Confirm Rate") }}
+    {{ form.btns(value="Confirm Rate",  class="toButton") }}
 
 </form>
 {% endblock %}

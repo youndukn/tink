@@ -16,7 +16,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
 @login_manager.user_loader
 def load_user(userid):
     try:
@@ -78,15 +77,25 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/new_post', methods = ('GET', 'POST'))
+@app.route('/new_address', methods = ('GET', 'POST'))
 @login_required
 def post():
     form = forms.PostForm()
-    if form.validate_on_submit():
-        models.Post.create(
-            user=g.user._get_current_object(),
-            content = form.content.data.strip())
-        flash("Message posted", "success")
+    if not current_user.is_admin:
+        flash("Admin required", "error")
+        return  redirect(url_for('index'))
+
+    if current_user.is_admin and form.validate_on_submit():
+        try:
+            email = form.email.data.strip()
+        except models.DoesNotExist:
+            abort(404)
+        else:
+            models.Post.create(
+                user=g.user._get_current_object(),
+                email=email,
+                content=form.content.data.strip())
+            flash("Address Updated", "success")
         return redirect(url_for('index'))
     return render_template('post.html', form=form)
 
@@ -94,8 +103,7 @@ def post():
 @app.route('/')
 @login_required
 def index():
-    stream = models.Coin.select().order_by(models.Coin.timestamp.desc()).limit(4)
-    return render_template('coin_stream.html', stream=stream)
+    return redirect(url_for('admin'))
 
 
 @app.route('/question', methods=('GET', 'POST'))
@@ -121,7 +129,7 @@ def view_question(question_id):
     return render_template('question_stream.html', stream=question)
 
 
-@app.route('/admin', methods = ('GET', 'POST'))
+@app.route('/new_coin', methods=('GET', 'POST'))
 @login_required
 def admin():
 
@@ -130,32 +138,38 @@ def admin():
     form = forms.CoinForm()
 
     if request.method == 'POST':
-        if request.form['btn'] == "To":
-            if form.eth.data:
-                ethereum = form.eth.data
-                tinkAmount = form.eth.data * 1230
-
-            if form.icx.data:
-                ethereum = form.icx.data / 22
-                tinkAmount = ethereum * 1230
-
-            return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
-        elif request.form['btn'] == "Confirm Rate":
+        if request.form['btns'] == "To":
             if form.validate_on_submit():
-                tinkAmount = form.eth.data * 1230
-                icxAmount = form.eth.data / 10
-                if form.icx.data:
-                    tinkAmount = form.icx.data * 12300
-                    icxAmount = form.icx.data
+                if form.sele.data == 'eth':
+                    ethereum = form.coin.data
+                    tinkAmount = form.coin.data * 1230
+                    icx = 0.0
+                if form.sele.data == 'icx':
+                    ethereum = form.coin.data / 22
+                    tinkAmount = ethereum * 1230
+                    icx = form.coin.data
 
+                return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+
+        elif request.form['btns'] == "Confirm Rate":
+            if form.validate_on_submit():
+                icxAmount = 0
+                ethAmount = 0
+                if form.sele.data == 'eth':
+                    tinkAmount = form.coin.data * 1230
+                    ethAmount = form.coin.data
+                if form.sele.data == 'icx':
+                    tinkAmount = form.coin.data * 12300
+                    icxAmount = form.coin.data
                 models.Coin.create(
                     user=g.user._get_current_object(),
+                    add=form.addr.data,
                     icx=icxAmount,
-                    eth=form.eth.data,
+                    eth=ethAmount,
                     tink=tinkAmount)
 
                 flash("Coin Submitted", "success")
-                return redirect(url_for('index'))
+                return redirect(url_for('coin', username=g.user._get_current_object().username))
 
     return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
 
@@ -180,6 +194,7 @@ def coin_send(username=None):
 @app.route('/coin/<username>')
 def coin(username=None):
     template = 'coin_stream.html'
+
     if current_user.is_admin and username != current_user.username:
         try:
             user = models.User.select().where(models.User.username**username).get()
@@ -189,10 +204,20 @@ def coin(username=None):
             stream=user.coins.limit(4)
     else:
         stream = current_user.get_coin_stream().limit(4)
+        try:
+            address = models.Post.select().where(
+                models.Post.email == current_user.email
+            ).get()
+        except models.DoesNotExist:
+            address = "Address Not Assigned"
+            flash("Address has not been assigned", "error")
+        else:
+            address = address.content
+
         user = current_user
     if username:
         template = 'coin_stream.html'
-    return render_template(template, stream=stream, user=user)
+    return render_template(template, stream=stream, user=user, address= address)
 
 
 @app.route('/coin/<int:coin_id>')
@@ -207,6 +232,12 @@ def view_coin(coin_id):
 @app.route('/stream/<username>')
 def stream(username=None):
     template = 'stream.html'
+    address = models.Post.select().where(
+            models.Post.email == username
+        )
+    if not address:
+        address = ""
+
     if username and username != current_user.username:
         try:
             user = models.User.select().where(models.User.username**username).get()
@@ -215,11 +246,11 @@ def stream(username=None):
         else:
             stream = user.posts.limit(100)
     else:
-        stream = current_user.get_stream().limit(100)
+        stream = models.Post.select().limit(100)
         user = current_user
-    if username:
-        template = 'user_stream.html'
-    return render_template(template, stream=stream, user=user)
+    #if username:
+    #    template = 'user_stream.html'
+    return render_template(template, stream=stream, user=user, address=address)
 
 
 @app.route('/post/<int:post_id>')

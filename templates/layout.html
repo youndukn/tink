@@ -65,7 +65,7 @@
             <nav>
 
                 {% if current_user.is_authenticated %}
-                <a href="{{ url_for('coin', username=current_user.username) }}"> Confirmed History</a>
+                <a href="{{ url_for('coin', username=current_user.username) }}"> Confirmed</a>
                 <a href="{{ url_for('admin') }}" class="new">Coins</a>
                 {% endif %}
 

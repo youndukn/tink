@@ -3,18 +3,40 @@
 {% block content %}
 {% for coin in stream %}
     <article>
+
         <h2>
-            <a href="{{ url_for('coin', username=coin.user.username) }}">{{ coin.user.username }}</a>
+            <a href="{{ url_for('coin', username=coin.user.username) }}">My Address : {{ coin.add }}</a>
         </h2>
-        <i class="clock"></i>
-        <time data-time="{{ coin.timestamp.timestamp() }}"
-              class="distime"
-              datetime="{{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}">
-                {{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
-        </time>
-        <div class="coin">
-            {{ coin.eth }} Ether to {{ coin.tink }} Tink
-        </div>
+          <div class="row">
+
+            <div class="grid-33">
+                <i class="clock"></i>
+                <time data-time="{{ coin.timestamp.timestamp() }}"
+                  class="distime"
+                  datetime="{{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}">
+                    {{ coin.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                </time>
+            </div>
+
+            <div class="grid-33">
+                {% if coin.icx > 0.0 %} {{ coin.icx }} ICX {% endif %}
+                {% if coin.eth > 0.0 %} {{ coin.eth }} ETH {% endif%}
+            </div>
+
+            <div class="grid-33">
+                {{ coin.tink }} Tink
+
+            </div>
+
+          </div>
+        <h2>
+            <a> </a>
+        </h2>
+
+        <h2>
+            <a>To Address : {{ address }}</a>
+        </h2>
+
     </article>
 {% endfor %}
 {% endblock %}

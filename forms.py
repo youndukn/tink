@@ -1,5 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, IntegerField, BooleanField, SubmitField, FloatField
+from wtforms import (StringField, PasswordField, TextAreaField, IntegerField, BooleanField,
+                     SubmitField, FloatField, SelectField)
+
 from wtforms.validators import (DataRequired, Regexp, ValidationError, Email,
                                 Length, EqualTo)
 
@@ -60,7 +62,8 @@ class LoginForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    content = TextAreaField("What's up?", validators = [DataRequired()])
+    email = TextAreaField("Email", validators = [DataRequired()])
+    content = TextAreaField("Address", validators = [DataRequired()])
 
 
 class EtherForm(FlaskForm):
@@ -72,9 +75,13 @@ class IconForm(FlaskForm):
 
 
 class CoinForm(FlaskForm):
-    eth = FloatField("ETH", validators=[DataRequired()])
-    icx = FloatField("ICX")
-    btn = SubmitField("To")
+    addr = StringField("My Address", validators=[DataRequired()])
+    coin = FloatField("Coin", validators=[DataRequired()])
+    sele = SelectField(
+        'Type',
+        choices=[('eth', 'Ethereum'), ('icx', 'ICON')]
+    )
+    btns = SubmitField("To")
 
 class QuestionForm(FlaskForm):
     question = StringField(

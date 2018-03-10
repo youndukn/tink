@@ -90,12 +90,12 @@ class User(UserMixin, Model):
 
 class Post(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
+    email = TextField()
+    content = TextField()
     user = ForeignKeyField(
         model=User,
         related_name='posts'
     )
-    content = TextField()
-
     class Meta:
         database = DATABASE
         order_by = ('-timestamp', )
@@ -107,6 +107,7 @@ class Coin(Model):
         model=User,
         related_name='coins'
     )
+    add = TextField()
     eth = FloatField()
     icx = FloatField()
     tink = FloatField()
@@ -165,5 +166,5 @@ class Relationship(Model):
 
 def initialized():
     DATABASE.connect()
-    DATABASE.create_tables((User, Post, Coin, Question,), safe=True)
+    DATABASE.create_tables((User, Post, Coin, Question , ), safe=True)
     DATABASE.close()

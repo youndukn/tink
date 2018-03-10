@@ -56,10 +56,10 @@ header {
   padding: 10px 0;
 }
 .icon-logo {
-  width: 30px;
-  height: 30px;
-  background: url('../img/icon-logo.svg') center no-repeat;
-  background-size: 22px 22px;
+  width: 60px;
+  height: 25px;
+  background: url('../img/icon-logo.png') center no-repeat;
+  background-size: 62px 27px;
   display: block;
   float: left;
 }
@@ -180,6 +180,18 @@ button.small {
     margin: 0 auto;
     text-align: center;
 }
+.toButton {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;
+  background: #6ECDF7;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  opacity: .8;
+  transition: .35s linear;
+}
+
 
 /*Profile*/
 .stats {
