@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import (StringField, PasswordField, TextAreaField, IntegerField, BooleanField,
+from wtforms import (TextField, StringField, PasswordField, TextAreaField, IntegerField, BooleanField,
                      SubmitField, FloatField, SelectField)
 
 from wtforms.validators import (DataRequired, Regexp, ValidationError, Email,
@@ -75,12 +75,14 @@ class IconForm(FlaskForm):
 
 
 class CoinForm(FlaskForm):
+
     addr = StringField("My Address", validators=[DataRequired()])
-    coin = FloatField("Coin", validators=[DataRequired()])
     sele = SelectField(
         'Type',
         choices=[('eth', 'Ethereum'), ('icx', 'ICON')]
     )
+    coin = FloatField("Coin", validators=[DataRequired()])
+
     btns = SubmitField("To")
 
 class QuestionForm(FlaskForm):
@@ -91,3 +93,10 @@ class QuestionForm(FlaskForm):
             name_exists
         ])
 
+
+class EmailForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+
+
+class PasswordForm(FlaskForm):
+    password = PasswordField('Email', validators=[DataRequired()])

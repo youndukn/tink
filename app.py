@@ -5,6 +5,8 @@ from flask_login import (LoginManager, login_user, logout_user, login_required,
 import forms
 import models
 
+import requests
+
 DEBUG = True
 PORT = 8000
 HOST = '0.0.0.0'
@@ -140,36 +142,43 @@ def admin():
     if request.method == 'POST':
         if request.form['btns'] == "To":
             if form.validate_on_submit():
-                if form.sele.data == 'eth':
-                    ethereum = form.coin.data
-                    tinkAmount = form.coin.data * 1230
-                    icx = 0.0
-                if form.sele.data == 'icx':
-                    ethereum = form.coin.data / 22
-                    tinkAmount = ethereum * 1230
-                    icx = form.coin.data
 
-                return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+                response = requests.get("https://api.coinmarketcap.com/v1/ticker/icon/?convert=ETH")
 
-        elif request.form['btns'] == "Confirm Rate":
-            if form.validate_on_submit():
                 icxAmount = 0
                 ethAmount = 0
+
                 if form.sele.data == 'eth':
-                    tinkAmount = form.coin.data * 1230
                     ethAmount = form.coin.data
+                    tinkAmount = form.coin.data * 24000
+
                 if form.sele.data == 'icx':
-                    tinkAmount = form.coin.data * 12300
+                    eth = form.coin.data*float(response.json()[0]["price_eth"])
                     icxAmount = form.coin.data
+                    tinkAmount = eth * 24000
+
                 models.Coin.create(
                     user=g.user._get_current_object(),
                     add=form.addr.data,
                     icx=icxAmount,
                     eth=ethAmount,
-                    tink=tinkAmount)
+                    tink=tinkAmount,
+                    confirm=False)
 
-                flash("Coin Submitted", "success")
-                return redirect(url_for('coin', username=g.user._get_current_object().username))
+                return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+
+        elif request.form['btns'] == "Buy Tink":
+            if form.validate_on_submit():
+                try:
+                    coin = current_user.get_coin_stream().limit(1).get()
+                    coin.confirm = True
+                    coin.save()
+                except models.DoesNotExist:
+                    flash("Please Convert First", "error")
+                    render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
+                else:
+                    flash("Coin Submitted", "success")
+                    return redirect(url_for('coin', username=g.user._get_current_object().username))
 
     return render_template('admin.html', form=form, tink=tinkAmount, eth=ethereum)
 

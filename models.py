@@ -111,6 +111,7 @@ class Coin(Model):
     eth = FloatField()
     icx = FloatField()
     tink = FloatField()
+    confirm = BooleanField()
 
     class Meta:
         database = DATABASE

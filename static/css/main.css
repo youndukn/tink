@@ -18,7 +18,7 @@ a:hover {
 }
 
 /*Typography*/
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5 {
   font-size: 1.15em;
   font-weight: normal;
   margin: 0;
@@ -39,11 +39,14 @@ h3 {
 h4 {
   margin: 10px 0 0;
   opacity: .7;
-  font-size: 2em;
+  font-size: 1.4em;
+  text-align: right;
 }
 h5 {
-    margin: 0;
+  text-align: center;
+  line-height: 80px;
 }
+
 p {
   margin: 0;
   line-height: 1.5em;
@@ -135,6 +138,8 @@ form {
 }
 input {
   width: 100%;
+  font-size: 2em;
+  text-align: center;
   border: 0;
   border-bottom: 2px solid #D3D8DC;
   outline: 0;
@@ -172,6 +177,17 @@ button {
   opacity: .8;
   transition: .35s linear;
 }
+
+select {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;
+  border: 0;
+  border-radius: 4px;
+  opacity: .8;
+  transition: .35s linear;
+}
+
 button:hover {
   opacity: 1;
 }
@@ -180,9 +196,30 @@ button.small {
     margin: 0 auto;
     text-align: center;
 }
+
+
 .toButton {
   width: 100%;
   padding: 20px 0;
+  font-size: 1em;
+  text-align: center;
+  background: #86a846;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  opacity: .8;
+  transition: .35s linear;
+}
+
+.toButton:hover {
+  opacity: 1;
+  color: inherit;
+}
+
+.buyButton {
+  width: 100%;
+  padding: 20px 0;
+  font-size: 1em;
   text-align: center;
   background: #6ECDF7;
   color: #fff;
@@ -192,6 +229,10 @@ button.small {
   transition: .35s linear;
 }
 
+.buyButton:hover {
+  opacity: 1;
+  color: inherit;
+}
 
 /*Profile*/
 .stats {
@@ -288,6 +329,12 @@ footer p {
 .grid-50{
     display: inline-block;
   float: left;
+  width: 49%;
+}
+.grid-r-50{
+  display: inline-block;
+  text-align: right;
+  float: right;
   width: 49%;
 }
 .grid-33{

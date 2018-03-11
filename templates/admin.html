@@ -15,14 +15,13 @@
             {% if field.label.text == "Coin" %} {{ form.coin(placeholder='Coin') }} {% endif%}
             {% if field.label.text == "Type" %} {{ render_field(field) }} {% endif%}
         {% endif %}
-
     {% endfor %}
 
     {{ form.btns(value="To", class="toButton") }}
-     <h2>
-         <a> {{ tink }} tinks</a>
-     </h2>
-    {{ form.btns(value="Confirm Rate",  class="toButton") }}
+     <h5>
+         <a> {{ tink }} Tinks</a>
+     </h5>
+     {{ form.btns(value="Buy Tink",  class="buyButton") }}
 
 </form>
 {% endblock %}
